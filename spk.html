@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pendukung Keputusan - SAW</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+        }
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column; /* Label di atas input */
+            text-align: left; /* Label tetap rata kiri */
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px; /* Beri jarak antara label dan input */
+            color: #555;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 95%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center; /* Tengahkan teks dalam input */
+        }
+
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>SPK Berat Badan Ideal - SAW</h2>
+        
+        <div class="form-group">
+            <label for="age">Usia (tahun)</label>
+            <input type="number" id="age" placeholder="Usia (tahun)" min="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="height">Tinggi Badan (cm)</label>
+            <input type="number" id="height" placeholder="Tinggi Badan (cm)" min="50">
+        </div>
+        
+        <div class="form-group">
+            <label for="weight">Berat Badan (kg)</label>
+            <input type="number" id="weight" placeholder="Berat Badan (kg)" min="10">
+        </div>        
+
+        <div class="form-group">
+            <label for="veggies">Konsumsi Sayur</label>
+            <select id="veggies">
+                <option value="5">Sangat Sering</option>
+                <option value="4">Sering</option>
+                <option value="3">Cukup</option>
+                <option value="2">Jarang</option>
+                <option value="1">Sangat Jarang</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="fastfood">Konsumsi Fast Food</label>
+            <select id="fastfood">
+                <option value="1">Sering</option>
+                <option value="0">Jarang</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="family_history">Riwayat Obesitas dalam Keluarga</label>
+            <select id="family_history">
+                <option value="1">Ada</option>
+                <option value="0">Tidak Ada</option>
+            </select>
+        </div>
+
+        <button onclick="calculateSAW()">Hitung</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function calculateSAW() {
+            let age = parseFloat(document.getElementById("age").value);
+            let height = parseFloat(document.getElementById("height").value) / 100;
+            let weight = parseFloat(document.getElementById("weight").value);
+            let veggies = parseFloat(document.getElementById("veggies").value);
+            let fastfood = parseFloat(document.getElementById("fastfood").value);
+            let family_history = parseFloat(document.getElementById("family_history").value);
+
+            if (isNaN(age) || isNaN(height) || isNaN(weight)) {
+                document.getElementById("result").innerHTML = "Mohon isi semua input dengan benar.";
+                return;
+            }
+
+            let bmi = weight / (height * height);
+            let bmiCategory = "";
+            let bmiScore = 0;
+
+            if (bmi < 18.5) {
+                bmiCategory = "Underweight";
+                bmiScore = 5;
+            } else if (bmi >= 18.5 && bmi <= 22.9) {
+                bmiCategory = "Ideal";
+                bmiScore = 4;
+            } else if (bmi >= 23 && bmi <= 24.9) {
+                bmiCategory = "Overweight";
+                bmiScore = 3;
+            } else if (bmi >= 25 && bmi <= 29.9) {
+                bmiCategory = "Obesitas 1";
+                bmiScore = 2;
+            } else {
+                bmiCategory = "Obesitas 2";
+                bmiScore = 1;
+            }
+
+            let ageScore = (age > 50) ? 1 :
+                           (age > 40) ? 2 :
+                           (age > 30) ? 3 :
+                           (age > 20) ? 4 : 5;
+
+            let normalized = {
+                bmi: bmiScore / 5,
+                age: ageScore / 5,
+                veggies: veggies / 5,
+                fastfood: 1 - fastfood, 
+                family: 1 - family_history
+            };
+
+            let weights = {
+                bmi: 0.4,
+                age: 0.2,
+                veggies: 0.2,
+                fastfood: 0.1,
+                family: 0.1
+            };
+
+            let score = (normalized.bmi * weights.bmi) +
+                        (normalized.age * weights.age) +
+                        (normalized.veggies * weights.veggies) +
+                        (normalized.fastfood * weights.fastfood) +
+                        (normalized.family * weights.family);
+
+            let healthStatus = (score > 0.8) ? "Sangat Sehat" :
+                               (score > 0.6) ? "Sehat" :
+                               (score > 0.4) ? "Cukup" :
+                               (score > 0.2) ? "Kurang Sehat" : "Tidak Sehat";
+
+            document.getElementById("result").innerHTML = `
+                <strong>Hasil:</strong><br>
+                BMI: ${bmi.toFixed(2)} (${bmiCategory})<br>
+                Skor SAW: ${score.toFixed(2)}<br>
+                Status: ${healthStatus}
+            `;
+        }
+    </script>
+</body>
+</html>
